@@ -42,10 +42,10 @@ pip install flask
 python3 main.py
 ```
 
-The API will be available at `http://localhost:5000`
+The API will be available at `http://localhost:8000`
 
 ### Web Interface
-Visit `http://localhost:5000/web` for a beautiful web interface to test the API with 12-hour time display.
+Visit `http://localhost:8000/web` for a beautiful web interface to test the API with 12-hour time display.
 
 ## API Endpoints
 
@@ -195,7 +195,7 @@ The Sleep API includes a beautiful web interface for easy testing:
 - **Responsive design** for desktop and mobile
 - **Sleep cycle information** for each recommendation
 
-Access the web interface at `http://localhost:5000/web` after starting the server.
+Access the web interface at `http://localhost:8000/web` after starting the server.
 
 ## Error Handling
 
