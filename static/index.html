@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SleAPI - Test Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px 20px;
+            border: 2px solid #e1e5e9;
+            background: white;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .mode-btn:hover {
+            border-color: #4facfe;
+            transform: translateY(-2px);
+        }
+
+        .mode-btn.active {
+            background: #4facfe;
+            color: white;
+            border-color: #4facfe;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .result-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #4facfe;
+        }
+
+        .result-time {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .result-cycle {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .time-24h {
+            color: #999;
+            font-size: 0.8em;
+            font-weight: normal;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4facfe;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-box h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .info-box p {
+            color: #424242;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 600px) {
+            .mode-selector {
+                flex-direction: column;
+            }
+            
+            .mode-btn {
+                min-width: auto;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌙 SleAPI</h1>
+            <p>Intelligent sleep time recommendations based on sleep cycle science</p>
+        </div>
+        
+        <div class="content">
+            <div class="info-box">
+                <h3>How it works</h3>
+                <p>This API uses 90-minute sleep cycles and accounts for 15 minutes to fall asleep. Choose a mode below to get personalized sleep recommendations.</p>
+            </div>
+
+            <div class="mode-selector">
+                <button class="mode-btn active" data-mode="1">Mode 1: Bedtimes from Wake Time</button>
+                <button class="mode-btn" data-mode="2">Mode 2: Wake Times from Bedtime</button>
+                <button class="mode-btn" data-mode="3">Mode 3: Current Time Recommendations</button>
+            </div>
+
+            <div class="input-section">
+                <div class="input-group" id="wake-time-group">
+                    <label for="wake-time">Wake Time (HH:MM)</label>
+                    <input type="time" id="wake-time" placeholder="07:00">
+                </div>
+
+                <div class="input-group" id="bedtime-group" style="display: none;">
+                    <label for="bedtime">Bedtime (HH:MM)</label>
+                    <input type="time" id="bedtime" placeholder="23:00">
+                </div>
+
+                <button class="submit-btn" id="submit-btn">Get Recommendations</button>
+            </div>
+
+            <div class="loading" id="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Calculating sleep recommendations...</p>
+            </div>
+
+            <div class="error" id="error"></div>
+
+            <div class="results" id="results">
+                <h3>Your Sleep Recommendations</h3>
+                <div id="results-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let currentMode = 1;
+
+        // Mode selection
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentMode = parseInt(btn.dataset.mode);
+                updateInputFields();
+            });
+        });
+
+        function updateInputFields() {
+            const wakeTimeGroup = document.getElementById('wake-time-group');
+            const bedtimeGroup = document.getElementById('bedtime-group');
+
+            if (currentMode === 1) {
+                wakeTimeGroup.style.display = 'block';
+                bedtimeGroup.style.display = 'none';
+            } else if (currentMode === 2) {
+                wakeTimeGroup.style.display = 'none';
+                bedtimeGroup.style.display = 'block';
+            } else {
+                wakeTimeGroup.style.display = 'none';
+                bedtimeGroup.style.display = 'none';
+            }
+        }
+
+        // Submit button
+        document.getElementById('submit-btn').addEventListener('click', async () => {
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const error = document.getElementById('error');
+            const submitBtn = document.getElementById('submit-btn');
+
+            // Hide previous results and errors
+            results.classList.remove('show');
+            error.style.display = 'none';
+
+            // Show loading
+            loading.style.display = 'block';
+            submitBtn.disabled = true;
+
+            try {
+                const requestBody = { mode: currentMode };
+
+                if (currentMode === 1) {
+                    const wakeTime = document.getElementById('wake-time').value;
+                    if (!wakeTime) {
+                        throw new Error('Please enter a wake time');
+                    }
+                    requestBody.wake_time = wakeTime;
+                } else if (currentMode === 2) {
+                    const bedtime = document.getElementById('bedtime').value;
+                    if (!bedtime) {
+                        throw new Error('Please enter a bedtime');
+                    }
+                    requestBody.bedtime = bedtime;
+                }
+
+                const response = await fetch(`${API_BASE}/sleep-recommendations`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'An error occurred');
+                }
+
+                displayResults(data);
+
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        });
+
+        function formatTime12Hour(time24) {
+            const [hours, minutes] = time24.split(':').map(Number);
+            const period = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+            return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+        }
+
+        function displayResults(data) {
+            const results = document.getElementById('results');
+            const content = document.getElementById('results-content');
+            
+            let html = `<p><strong>${data.message}</strong></p>`;
+            
+            if (data.recommendations && data.recommendations.length > 0) {
+                html += '<div class="recommendations">';
+                
+                if (currentMode === 3) {
+                    // For mode 3, show first 10 recommendations
+                    const limitedRecs = data.recommendations.slice(0, 10);
+                    limitedRecs.forEach((time, index) => {
+                        const time12Hour = formatTime12Hour(time);
+                        html += `
+                            <div class="result-item">
+                                <div class="result-time">${time12Hour} <span class="time-24h">(${time})</span></div>
+                                <div class="result-cycle">Wake time option ${index + 1}</div>
+                            </div>
+                        `;
+                    });
+                    if (data.recommendations.length > 10) {
+                        html += `<p><em>... and ${data.recommendations.length - 10} more options</em></p>`;
+                    }
+                } else {
+                    // For modes 1 and 2, show cycle information
+                    const cycles = [4, 5, 6];
+                    data.recommendations.forEach((time, index) => {
+                        const cycleCount = cycles[index];
+                        const time12Hour = formatTime12Hour(time);
+                        const cycleText = currentMode === 1 ? 'bedtime' : 'wake time';
+                        html += `
+                            <div class="result-item">
+                                <div class="result-time">${time12Hour} <span class="time-24h">(${time})</span></div>
+                                <div class="result-cycle">${cycleCount} sleep cycles (${cycleCount * 90 + 15} minutes total)</div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                html += '</div>';
+            }
+            
+            content.innerHTML = html;
+            results.classList.add('show');
+        }
+
+        function showError(message) {
+            const error = document.getElementById('error');
+            error.textContent = message;
+            error.style.display = 'block';
+        }
+
+        // Initialize
+        updateInputFields();
+    </script>
+</body>
+</html> 
