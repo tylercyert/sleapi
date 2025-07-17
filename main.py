@@ -89,20 +89,9 @@ def calculate_current_wake_times():
 
 @app.route('/')
 def root():
-    """Root endpoint with API information"""
-    return jsonify({
-        "message": "Sleep API - Intelligent sleep time recommendations",
-        "version": "1.0.0",
-        "endpoints": {
-            "POST /sleep-recommendations": "Get sleep time recommendations",
-            "GET /web": "Web interface"
-        },
-        "modes": {
-            "1": "Calculate bedtimes from wake time",
-            "2": "Calculate wake times from bedtime", 
-            "3": "Get wake times from current time"
-        }
-    })
+    """Serve the frontend site at root URL"""
+    return send_from_directory('static', 'index.html')
+
 
 @app.route('/health')
 def health_check():
