@@ -217,6 +217,19 @@
             line-height: 1.5;
         }
 
+        .result-item.green {
+            border-left-color: #2ecc40;
+            background: #eafaf1;
+        }
+        .result-item.yellow {
+            border-left-color: #ffdc00;
+            background: #fffbe6;
+        }
+        .result-item.red {
+            border-left-color: #ff4136;
+            background: #fff0f0;
+        }
+
         @media (max-width: 600px) {
             .mode-selector {
                 flex-direction: column;
@@ -246,20 +259,20 @@
             </div>
 
             <div class="mode-selector">
-                <button class="mode-btn active" data-mode="1">Mode 1: Bedtimes from Wake Time</button>
-                <button class="mode-btn" data-mode="2">Mode 2: Wake Times from Bedtime</button>
-                <button class="mode-btn" data-mode="3">Mode 3: Current Time Recommendations</button>
+                <button class="mode-btn active" data-mode="1">Calculate Bed Times</button>
+                <button class="mode-btn" data-mode="2">Calculate Wake Times</button>
+                <button class="mode-btn" data-mode="3">Sleep Now</button>
             </div>
 
             <div class="input-section">
                 <div class="input-group" id="wake-time-group">
-                    <label for="wake-time">Wake Time (HH:MM)</label>
-                    <input type="time" id="wake-time" placeholder="07:00">
+                    <label for="wake-time">What time do you want to wake up?</label>
+                    <input type="time" id="wake-time" value="05:30">
                 </div>
 
                 <div class="input-group" id="bedtime-group" style="display: none;">
-                    <label for="bedtime">Bedtime (HH:MM)</label>
-                    <input type="time" id="bedtime" placeholder="23:00">
+                    <label for="bedtime">When do you want to go to bed?</label>
+                    <input type="time" id="bedtime" value="23:30">
                 </div>
 
                 <button class="submit-btn" id="submit-btn">Get Recommendations</button>
@@ -280,7 +293,8 @@
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:8000';
+        // Auto-detect the API base URL (works for localhost and production)
+        const API_BASE = window.location.origin;
         let currentMode = 1;
 
         // Mode selection
@@ -372,6 +386,13 @@
             return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
         }
 
+        function getCycleColorClass(cycleCount) {
+            if (cycleCount === 4 || cycleCount === 5) return 'green';
+            if (cycleCount === 3 || cycleCount === 6) return 'yellow';
+            if (cycleCount < 3 || cycleCount > 6) return 'red';
+            return '';
+        }
+
         function displayResults(data) {
             const results = document.getElementById('results');
             const content = document.getElementById('results-content');
@@ -382,29 +403,27 @@
                 html += '<div class="recommendations">';
                 
                 if (currentMode === 3) {
-                    // For mode 3, show first 10 recommendations
-                    const limitedRecs = data.recommendations.slice(0, 10);
-                    limitedRecs.forEach((time, index) => {
+                    // For mode 3, cycles start at 1
+                    data.recommendations.forEach((time, index) => {
+                        const cycleCount = index + 1;
+                        const colorClass = getCycleColorClass(cycleCount);
                         const time12Hour = formatTime12Hour(time);
                         html += `
-                            <div class="result-item">
+                            <div class="result-item ${colorClass}">
                                 <div class="result-time">${time12Hour} <span class="time-24h">(${time})</span></div>
-                                <div class="result-cycle">Wake time option ${index + 1}</div>
+                                <div class="result-cycle">Wake after ${cycleCount} sleep cycle${cycleCount > 1 ? 's' : ''}</div>
                             </div>
                         `;
                     });
-                    if (data.recommendations.length > 10) {
-                        html += `<p><em>... and ${data.recommendations.length - 10} more options</em></p>`;
-                    }
                 } else {
-                    // For modes 1 and 2, show cycle information
-                    const cycles = [4, 5, 6];
+                    // For modes 1 and 2, cycles start at 4
                     data.recommendations.forEach((time, index) => {
-                        const cycleCount = cycles[index];
+                        const cycleCount = index + 4;
+                        const colorClass = getCycleColorClass(cycleCount);
                         const time12Hour = formatTime12Hour(time);
                         const cycleText = currentMode === 1 ? 'bedtime' : 'wake time';
                         html += `
-                            <div class="result-item">
+                            <div class="result-item ${colorClass}">
                                 <div class="result-time">${time12Hour} <span class="time-24h">(${time})</span></div>
                                 <div class="result-cycle">${cycleCount} sleep cycles (${cycleCount * 90 + 15} minutes total)</div>
                             </div>

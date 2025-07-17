@@ -5,6 +5,10 @@ import os
 
 app = Flask(__name__)
 
+# Production settings
+app.config['DEBUG'] = False
+app.config['TESTING'] = False
+
 # Sleep cycle constants
 SLEEP_CYCLE_MINUTES = 90
 FALL_ASLEEP_MINUTES = 15
@@ -12,8 +16,11 @@ NAP_INCREMENT_MINUTES = 15
 
 def parse_time(time_str):
     """Parse time string in HH:MM format to time object"""
-    hour, minute = map(int, time_str.split(':'))
-    return time(hour, minute)
+    try:
+        hour, minute = map(int, time_str.split(':'))
+        return time(hour, minute)
+    except (ValueError, TypeError):
+        raise ValueError('Invalid time format')
 
 def format_time(t):
     """Format time object to HH:MM string"""
@@ -54,7 +61,7 @@ def calculate_bedtimes_from_wake_time(wake_time_str):
         bedtime = round_to_nearest_15_minutes(bedtime)
         bedtimes.append(format_time(bedtime))
     
-    return bedtimes
+    return bedtimes[:6]
 
 def calculate_wake_times_from_bedtime(bedtime_str):
     """Mode 2: Calculate ideal wake times from a given bedtime"""
@@ -73,12 +80,11 @@ def calculate_current_wake_times():
     """Mode 3: Calculate recommended wake times starting from current time"""
     current_time = datetime.now().time()
     wake_times = []
-    
-    for i in range(1, 49):
-        wake_time = add_minutes_to_time(current_time, i * NAP_INCREMENT_MINUTES)
+    for cycle_count in range(1, 7):
+        total_minutes = cycle_count * SLEEP_CYCLE_MINUTES + FALL_ASLEEP_MINUTES
+        wake_time = add_minutes_to_time(current_time, total_minutes)
         wake_time = round_to_nearest_15_minutes(wake_time)
         wake_times.append(format_time(wake_time))
-    
     return wake_times
 
 @app.route('/')
@@ -159,18 +165,39 @@ def get_sleep_recommendations():
                 "message": f"Recommended wake times starting from current time ({current_time})"
             })
     
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
     except Exception as e:
-        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+        # Log the error for debugging (in production, you'd use a proper logger)
+        print(f"Error in sleep recommendations: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
 
 @app.route('/web')
 def web_interface():
     """Serve the web interface"""
     return send_from_directory('static', 'index.html')
 
+@app.errorhandler(404)
+def not_found(error):
+    """Handle 404 errors"""
+    return jsonify({"error": "Endpoint not found"}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    """Handle 500 errors"""
+    return jsonify({"error": "Internal server error"}), 500
+
 if __name__ == '__main__':
-    print("🌙 Sleep API Starting...")
-    print("Web interface: http://localhost:8000/web")
-    print("API endpoint: http://localhost:8000/")
-    print("Press Ctrl+C to stop")
-    print()
-    app.run(host='0.0.0.0', port=8000, debug=True) 
+    # Get port from environment variable (for production) or default to 80
+    port = int(os.environ.get('PORT', 8000))
+    
+    # Only show startup messages in development
+    if os.environ.get('FLASK_ENV') != 'production':
+        print("🌙 Sleep API Starting...")
+        print(f"Web interface: http://localhost:{port}/web")
+        print(f"API endpoint: http://localhost:{port}/")
+        print("Press Ctrl+C to stop")
+        print()
+    
+    # Run the app
+    app.run(host='0.0.0.0', port=port, debug=False) 
