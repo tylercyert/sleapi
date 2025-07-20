@@ -55,42 +55,47 @@ def calculate_bedtimes_from_wake_time(wake_time_str):
     wake_time = parse_time(wake_time_str)
     bedtimes = []
     
-    for cycles in range(4, 7):
+    for cycles in range(2, 7):  # 2 to 6 cycles (max 5 recommendations)
         total_sleep_minutes = cycles * SLEEP_CYCLE_MINUTES + FALL_ASLEEP_MINUTES
         bedtime = subtract_minutes_from_time(wake_time, total_sleep_minutes)
         bedtime = round_to_nearest_15_minutes(bedtime)
         bedtimes.append(format_time(bedtime))
     
-    return bedtimes[:6]
+    return bedtimes[:5]  # Return max 5 recommendations
 
 def calculate_wake_times_from_bedtime(bedtime_str):
     """Mode 2: Calculate ideal wake times from a given bedtime"""
     bedtime = parse_time(bedtime_str)
     wake_times = []
     
-    for cycles in range(4, 7):
+    for cycles in range(2, 7):  # 2 to 6 cycles (max 5 recommendations)
         total_sleep_minutes = cycles * SLEEP_CYCLE_MINUTES + FALL_ASLEEP_MINUTES
         wake_time = add_minutes_to_time(bedtime, total_sleep_minutes)
         wake_time = round_to_nearest_15_minutes(wake_time)
         wake_times.append(format_time(wake_time))
     
-    return wake_times
+    return wake_times[:5]  # Return max 5 recommendations
 
 def calculate_current_wake_times():
     """Mode 3: Calculate recommended wake times starting from current time"""
     current_time = datetime.now().time()
     wake_times = []
-    for cycle_count in range(1, 7):
+    for cycle_count in range(2, 7):  # 2 to 6 cycles (max 5 recommendations)
         total_minutes = cycle_count * SLEEP_CYCLE_MINUTES + FALL_ASLEEP_MINUTES
         wake_time = add_minutes_to_time(current_time, total_minutes)
         wake_time = round_to_nearest_15_minutes(wake_time)
         wake_times.append(format_time(wake_time))
-    return wake_times
+    return wake_times[:5]  # Return max 5 recommendations
 
 @app.route('/')
 def root():
     """Serve the frontend site at root URL"""
     return send_from_directory('static', 'index.html')
+
+@app.route('/<path:filename>')
+def static_files(filename):
+    """Serve static files from the static directory"""
+    return send_from_directory('static', filename)
 
 
 @app.route('/health')
@@ -125,7 +130,7 @@ def get_sleep_recommendations():
                 "mode": 1,
                 "input_time": wake_time,
                 "recommendations": recommendations,
-                "message": f"Ideal bedtimes for waking up at {wake_time} (4-6 sleep cycles)"
+                "message": f"Ideal bedtimes for waking up at {wake_time} (2-6 sleep cycles)"
             })
         
         elif mode == 2:
@@ -141,7 +146,7 @@ def get_sleep_recommendations():
                 "mode": 2,
                 "input_time": bedtime,
                 "recommendations": recommendations,
-                "message": f"Ideal wake times for going to bed at {bedtime} (4-6 sleep cycles)"
+                "message": f"Ideal wake times for going to bed at {bedtime} (2-6 sleep cycles)"
             })
         
         elif mode == 3:

@@ -217,6 +217,49 @@
             line-height: 1.5;
         }
 
+        .infographic-toggle {
+            background: none;
+            color: #1976d2;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            margin: 10px 0 0 0;
+            transition: color 0.3s ease;
+            display: inline-block;
+            text-decoration: underline;
+            font-family: inherit;
+            text-align: center;
+            width: 100%;
+        }
+
+        .infographic-toggle:hover {
+            color: #4facfe;
+            text-decoration: none;
+        }
+
+        .infographic-container {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+
+            border-radius: 12px;
+        }
+
+        .infographic-container.show {
+            display: block;
+        }
+
+        .infographic-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+
+
         .result-item.green {
             border-left-color: #2ecc40;
             background: #eafaf1;
@@ -255,7 +298,15 @@
         <div class="content">
             <div class="info-box">
                 <h3>How it works</h3>
-                <p>This site uses 90-minute sleep cycles and accounts for 15 minutes to fall asleep. Choose an option below to get personalized sleep recommendations.</p>
+                <p>Sleep cycles last ~90 mins (N1→N2→N3→REM). Waking at cycle start (N1) boosts alertness. This site enables you to optimize your bedtime and alarms for a graceful awakening!</p>
+                
+                <button class="infographic-toggle" id="infographic-toggle">
+                    How sleep cycles work
+                </button>
+                
+                <div class="infographic-container" id="infographic-container">
+                    <img src="REMHUNTER_Infograph.png" alt="A Complete Sleep Cycle (90 minutes)" />
+                </div>
             </div>
 
             <div class="mode-selector">
@@ -387,9 +438,9 @@
         }
 
         function getCycleColorClass(cycleCount) {
-            if (cycleCount === 4 || cycleCount === 5) return 'green';
-            if (cycleCount === 3 || cycleCount === 6) return 'yellow';
-            if (cycleCount < 3 || cycleCount > 6) return 'red';
+            if (cycleCount === 4 || cycleCount === 5 || cycleCount === 6) return 'green';
+            if (cycleCount === 3) return 'yellow';
+            if (cycleCount === 2) return 'red';
             return '';
         }
 
@@ -403,9 +454,9 @@
                 html += '<div class="recommendations">';
                 
                 if (currentMode === 3) {
-                    // For mode 3, cycles start at 1
+                    // For mode 3, cycles start at 2
                     data.recommendations.forEach((time, index) => {
-                        const cycleCount = index + 1;
+                        const cycleCount = index + 2;
                         const colorClass = getCycleColorClass(cycleCount);
                         const time12Hour = formatTime12Hour(time);
                         html += `
@@ -416,9 +467,9 @@
                         `;
                     });
                 } else {
-                    // For modes 1 and 2, cycles start at 4
+                    // For modes 1 and 2, cycles start at 2
                     data.recommendations.forEach((time, index) => {
-                        const cycleCount = index + 4;
+                        const cycleCount = index + 2;
                         const colorClass = getCycleColorClass(cycleCount);
                         const time12Hour = formatTime12Hour(time);
                         const cycleText = currentMode === 1 ? 'bedtime' : 'wake time';
@@ -443,6 +494,20 @@
             error.textContent = message;
             error.style.display = 'block';
         }
+
+        // Infographic toggle functionality
+        document.getElementById('infographic-toggle').addEventListener('click', () => {
+            const container = document.getElementById('infographic-container');
+            const toggle = document.getElementById('infographic-toggle');
+            
+            if (container.classList.contains('show')) {
+                container.classList.remove('show');
+                toggle.textContent = 'How sleep cycles work';
+            } else {
+                container.classList.add('show');
+                toggle.textContent = 'Hide sleep cycle infographic';
+            }
+        });
 
         // Initialize
         updateInputFields();
