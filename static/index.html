@@ -355,8 +355,41 @@
                 btn.classList.add('active');
                 currentMode = parseInt(btn.dataset.mode);
                 updateInputFields();
+                
+                // Start/stop current time updates for mode 3
+                if (currentMode === 3) {
+                    startCurrentTimeUpdates();
+                } else {
+                    stopCurrentTimeUpdates();
+                    // Reset submit button text
+                    document.getElementById('submit-btn').textContent = 'Get Recommendations';
+                }
             });
         });
+
+        let currentTimeInterval;
+
+        function startCurrentTimeUpdates() {
+            // Update current time every minute
+            currentTimeInterval = setInterval(() => {
+                if (currentMode === 3) {
+                    const now = new Date();
+                    const hours = now.getHours().toString().padStart(2, '0');
+                    const minutes = now.getMinutes().toString().padStart(2, '0');
+                    const currentTimeStr = `${hours}:${minutes}`;
+                    
+                    const submitBtn = document.getElementById('submit-btn');
+                    submitBtn.textContent = `Get Recommendations (Current Time: ${currentTimeStr})`;
+                }
+            }, 60000); // Update every minute
+        }
+
+        function stopCurrentTimeUpdates() {
+            if (currentTimeInterval) {
+                clearInterval(currentTimeInterval);
+                currentTimeInterval = null;
+            }
+        }
 
         function updateInputFields() {
             const wakeTimeGroup = document.getElementById('wake-time-group');
@@ -371,6 +404,16 @@
             } else {
                 wakeTimeGroup.style.display = 'none';
                 bedtimeGroup.style.display = 'none';
+                
+                // Show current time for mode 3
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const currentTimeStr = `${hours}:${minutes}`;
+                
+                // Update submit button text to show current time
+                const submitBtn = document.getElementById('submit-btn');
+                submitBtn.textContent = `Get Recommendations (Current Time: ${currentTimeStr})`;
             }
         }
 
@@ -404,6 +447,12 @@
                         throw new Error('Please enter a bedtime');
                     }
                     requestBody.bedtime = bedtime;
+                } else if (currentMode === 3) {
+                    // For mode 3, send the user's current local time
+                    const now = new Date();
+                    const hours = now.getHours().toString().padStart(2, '0');
+                    const minutes = now.getMinutes().toString().padStart(2, '0');
+                    requestBody.current_time = `${hours}:${minutes}`;
                 }
 
                 const response = await fetch(`${API_BASE}/sleep-recommendations`, {
@@ -509,8 +558,13 @@
             }
         });
 
-        // Initialize
+        // Initialize the page
         updateInputFields();
+        
+        // If mode 3 is active on page load, start current time updates
+        if (currentMode === 3) {
+            startCurrentTimeUpdates();
+        }
     </script>
 </body>
 <footer style="text-align: center; padding: 1rem; font-size: 0.9rem; color: #bdbdbd;">

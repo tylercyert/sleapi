@@ -76,9 +76,15 @@ def calculate_wake_times_from_bedtime(bedtime_str):
     
     return wake_times[:5]  # Return max 5 recommendations
 
-def calculate_current_wake_times():
+def calculate_current_wake_times(user_current_time_str=None):
     """Mode 3: Calculate recommended wake times starting from current time"""
-    current_time = datetime.now().time()
+    if user_current_time_str:
+        # Use user-provided time
+        current_time = parse_time(user_current_time_str)
+    else:
+        # Fallback to server time (UTC)
+        current_time = datetime.now().time()
+    
     wake_times = []
     for cycle_count in range(2, 7):  # 2 to 6 cycles (max 5 recommendations)
         total_minutes = cycle_count * SLEEP_CYCLE_MINUTES + FALL_ASLEEP_MINUTES
@@ -167,8 +173,16 @@ def get_sleep_recommendations():
             })
         
         elif mode == 3:
-            recommendations = calculate_current_wake_times()
-            current_time = datetime.now().strftime("%H:%M")
+            # Get user's current time from request, or use server time as fallback
+            user_current_time = data.get('current_time')
+            recommendations = calculate_current_wake_times(user_current_time)
+            
+            # Use user time if provided, otherwise use server time
+            if user_current_time:
+                current_time = user_current_time
+            else:
+                current_time = datetime.now().strftime("%H:%M")
+            
             return jsonify({
                 "mode": 3,
                 "input_time": current_time,
