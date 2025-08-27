@@ -103,6 +103,11 @@ def health_check():
     """Health check endpoint"""
     return jsonify({"status": "healthy", "timestamp": datetime.now().isoformat()})
 
+@app.route('/api/health')
+def api_health_check():
+    """API health check endpoint for nginx"""
+    return jsonify({"status": "healthy", "timestamp": datetime.now().isoformat()})
+
 @app.route('/sleep-recommendations', methods=['POST'])
 def get_sleep_recommendations():
     """Get sleep time recommendations based on the specified mode"""
