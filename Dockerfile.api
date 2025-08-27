@@ -1,4 +1,4 @@
-# Python API (Flask or FastAPI) on port 8000
+# Python API (Flask) on port 8000
 FROM python:3.11-slim AS api
 WORKDIR /app
 
@@ -8,18 +8,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends build-essential
 # Install Python deps
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir gunicorn uvicorn
+    && pip install --no-cache-dir gunicorn
 
 # Copy app
 COPY . .
 
-# Which module:object is your ASGI/WSGI app?
-# If FastAPI or Flask with "app" in main.py, this default works:
+# Which module:object is your WSGI app?
+# For Flask with "app" in main.py, this default works:
 ENV APP_MODULE=main:app
 ENV PORT=8000
 
 EXPOSE 8000
 
-# Gunicorn with Uvicorn worker handles both FastAPI and Flask (via ASGI wrapper)
-# If your app is Flask and not ASGI-ready, this still works via Uvicorn worker’s WSGI support.
-CMD ["bash", "-lc", "exec gunicorn -k uvicorn.workers.UvicornWorker -w 2 -b 0.0.0.0:${PORT} ${APP_MODULE}"]
+# Use Gunicorn with WSGI worker for Flask
+CMD ["bash", "-lc", "exec gunicorn -w 2 -b 0.0.0.0:${PORT} ${APP_MODULE}"]
