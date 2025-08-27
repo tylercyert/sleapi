@@ -108,13 +108,25 @@ def api_health_check():
     """API health check endpoint for nginx"""
     return jsonify({"status": "healthy", "timestamp": datetime.now().isoformat()})
 
+@app.route('/api/sleep-recommendations', methods=['POST'])
+def api_get_sleep_recommendations():
+    """API endpoint for sleep recommendations (proxied through nginx)"""
+    try:
+        print(f"API endpoint called with data: {request.get_json()}")
+        return get_sleep_recommendations()
+    except Exception as e:
+        print(f"API endpoint error: {str(e)}")
+        return jsonify({"error": f"API error: {str(e)}"}), 500
+
 @app.route('/sleep-recommendations', methods=['POST'])
 def get_sleep_recommendations():
     """Get sleep time recommendations based on the specified mode"""
     try:
         data = request.get_json()
+        print(f"Sleep recommendations called with data: {data}")
         
         if not data or 'mode' not in data:
+            print(f"Missing mode in request data: {data}")
             return jsonify({"error": "Mode is required"}), 400
         
         mode = data['mode']
